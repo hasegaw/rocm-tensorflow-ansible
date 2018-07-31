@@ -1,0 +1,25 @@
+# ROCm Enabled TensorFlow
+- name: Install ROCm packages
+  apt: name={{ item }} state=latest update_cache=yes
+  with_items:
+  - rocm-libs
+  - miopen-hip
+  - cxlactivitylogger
+
+- name: Install python3-pip
+  apt: name={{ item }} state=latest
+  with_items:
+  - python3-pip
+
+- pip:
+    name: virtualenv
+    executable: pip3
+
+- name: Download pre-built tensorflow binary
+  get_url:
+    url: http://repo.radeon.com/rocm/misc/tensorflow/tensorflow-1.8.0-cp35-cp35m-manylinux1_x86_64.whl
+    dest: /tmp/tensorflow-1.8.0-cp35-cp35m-manylinux1_x86_64.whl
+
+- pip:
+    virtualenv: "/usr/local/rocm-tensorflow"
+    name: /tmp/tensorflow-1.8.0-cp35-cp35m-manylinux1_x86_64.whl

@@ -1,0 +1,39 @@
+- name: Install libnuma-dev
+  apt: name=libnuma-dev state=present
+
+- name: Install newer kernel
+  apt: name={{ item }} state=present
+  with_items:
+  - linux-headers-4.13.0-32-generic
+  - linux-image-4.13.0-32-generic
+  - linux-image-extra-4.13.0-32-generic
+  - linux-signed-image-4.13.0-32-generic
+
+- name: Add ROCm apt repository
+  apt_key:
+    data: "{{ lookup('file', 'rocm.gpg.key') }}"
+    state: present
+
+- name: Add ROCm Repository
+  apt_repository:
+    repo: deb [arch=amd64] http://repo.radeon.com/rocm/apt/debian/ xenial main
+    state: present
+    filename: rocm
+
+- name: Install ROCM package
+  apt: name={{ item }} state=latest update_cache=yes
+  with_items:
+  - rocm-dkms
+  - rocm-dev
+
+- name: Add ubuntu user into video group
+  user: name=ubuntu groups=video append=yes
+
+- name: Reboot the server
+  shell: "sleep 2 && reboot"
+  async: 1
+  poll: 0
+ 
+- name: Rebootまち
+  local_action: wait_for host={{ inventory_hostname }} port=22 delay=120 timeout=600
+  become: False
