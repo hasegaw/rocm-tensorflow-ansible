@@ -15,11 +15,6 @@
     name: virtualenv
     executable: pip3
 
-- name: Download pre-built tensorflow binary
-  get_url:
-    url: http://repo.radeon.com/rocm/misc/tensorflow/tensorflow-1.8.0-cp35-cp35m-manylinux1_x86_64.whl
-    dest: /tmp/tensorflow-1.8.0-cp35-cp35m-manylinux1_x86_64.whl
-
 - pip:
-    virtualenv: "/usr/local/rocm-tensorflow"
-    name: /tmp/tensorflow-1.8.0-cp35-cp35m-manylinux1_x86_64.whl
+    virtualenv: "/usr/local/tensorflow-rocm"
+    name: tensorflow-rocm

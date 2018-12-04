@@ -1,13 +1,23 @@
 - name: Install libnuma-dev
   apt: name=libnuma-dev state=present
 
-- name: Install newer kernel
+- name: Install newer kernel (Ubuntu 16.04)
   apt: name={{ item }} state=present
   with_items:
   - linux-headers-4.13.0-32-generic
   - linux-image-4.13.0-32-generic
   - linux-image-extra-4.13.0-32-generic
   - linux-signed-image-4.13.0-32-generic
+  when: "ansible_distribution == 'Ubuntu' and ansible_distribution_version == '16.04'"
+
+- name: Reboot the server
+  shell: "sleep 2 && reboot"
+  async: 1
+  poll: 0
+
+- name: Rebootまち
+  local_action: wait_for host={{ inventory_hostname }} port=22 delay=120 timeout=600
+  become: False
 
 - name: Add ROCm apt repository
   apt_key:
@@ -23,17 +33,30 @@
 - name: Install ROCM package
   apt: name={{ item }} state=latest update_cache=yes
   with_items:
-  - rocm-dkms
   - rocm-dev
+
+- name: Install ROCM package
+  apt: name={{ item }} state=latest update_cache=yes
+  with_items:
+  - rocm-dkms
+
+- name: Deploy /etc/profile.d/rocm.(c)sh
+  template: src={{ item }}.j2 dest=/etc/profile.d/{{ item }}
+  with_items:
+  - rocm.sh
+  - rocm.csh
 
 - name: Add ubuntu user into video group
   user: name=ubuntu groups=video append=yes
 
-- name: Reboot the server
-  shell: "sleep 2 && reboot"
-  async: 1
-  poll: 0
- 
-- name: Rebootまち
-  local_action: wait_for host={{ inventory_hostname }} port=22 delay=120 timeout=600
-  become: False
+- name: Add users to video group automatically
+  lineinfile:
+    path: /etc/adduser.conf
+    regexp: '^ADD_EXTRA_GROUPS='
+    line: 'ADD_EXTRA_GROUPS=1'
+
+- name: Add users to video group automatically
+  lineinfile:
+    path: /etc/adduser.conf
+    regexp: '^EXTRA_GROUPS='
+    line: 'EXTRA_GROUPS=video'
